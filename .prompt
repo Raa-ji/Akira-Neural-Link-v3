@@ -24,7 +24,7 @@ All gameplay, rules, visuals, and mechanics must match the original v0.10 spec (
 |----|-------------------|-----------|---------------------------|------------------------------------------------------------------------|
 | [1]| FIREWALL IS WALL  | Toggle    | Persistent                | Rule ON by default; Firewalls (tile 2) become solid *only* when ON   |
 | [2]| NODES ARE LOCKED  | Duration  | 5s active / 60s CD        | Nodes cannot be infected, cleaned, or interacted with                 |
-| [3]| VIRUS IS STOP     | Duration  | 3.5s active / 60s CD      | All viruses freeze in place                                            |
+| [3]| VIRUS IS STOP     | Duration  | 3.5s active / 60s CD      | All viruses freeze in place            |
 | [4]| VIRUS IS SLOW     | Duration  | 8s active / 30s CD        | Viruses move at 60% speed                                              |
 | [5]| COOLANT IS SAFE   | Duration  | 6s active / 10s CD        | Coolant tiles (tile 3) heal player (+2 HP/s while standing on them)   |
 
@@ -43,7 +43,7 @@ Each infected node imposes a unique penalty—effects *stack* with multiple infe
 | 0       | Motor Control     | Movement speed reduced by 50%                                          |
 | 1       | Visual Processor  | Screen shake + subtle visual distortion (e.g., chromatic aberration)  |
 | 2       | Auditory Processing | RGB static overlay on HUD; mini-map corrupted or hidden             |
-| 3       | Neural Link       | Rule toggle activation delayed by ~500ms                               |
+| 3       | Neural Link       | Rule toggle activation delayed by ~1500ms                               |
 | 4       | Life Support      | -0.5 HP/sec drain AND healing blocked (coolant, nodes, etc.)          |
 
 > ✅ Healing only works on secure Life Support node (+2 HP/s) *unless* Rule [5] is active.
