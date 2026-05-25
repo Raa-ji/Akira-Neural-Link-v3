@@ -173,7 +173,7 @@ export default class InputHandler {
 
     /**
      * Handle mouse movement when pointer is locked
-     * Accumulates horizontal mouse delta
+     * Accumulates horizontal mouse delta (only x-axis for look)
      */
     handleMouseMove(e) {
         if (this.isPointerLocked()) {

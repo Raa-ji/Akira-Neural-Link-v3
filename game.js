@@ -120,25 +120,25 @@ export default class Game {
      * Main game loop - calculates delta time and updates game state
      * @param {number} timestamp - Current timestamp from requestAnimationFrame
      */
-    _gameLoop(timestamp) {
-        if (!this.isRunning) return;
-        
-        // Calculate delta time in seconds for frame-rate independent updates
-        const dt = (timestamp - this.lastTime) / 1000;
-        this.lastTime = timestamp;
-        
-        // Reset mouse delta at the beginning of each frame
-        this.inputHandler.resetMouseDelta();
-        
-        // Update game logic
-        this.update(dt);
-        
-        // Render game
-        this.render(this.ctx);
-        
-        // Continue the game loop
-        requestAnimationFrame((timestamp) => this._gameLoop(timestamp));
-    }
+ _gameLoop(timestamp) {
+    if (!this.isRunning) return;
+    
+    // Calculate delta time in seconds for frame-rate independent updates
+    const dt = (timestamp - this.lastTime) / 1000;
+    this.lastTime = timestamp;
+    
+    // Update game logic (without resetting mouse delta first)
+    this.update(dt);
+    
+    // Render game
+    this.render(this.ctx);
+    
+    // Reset mouse delta after frame processing (not at the beginning)
+    this.inputHandler.resetMouseDelta();
+    
+    // Continue the game loop
+    requestAnimationFrame((timestamp) => this._gameLoop(timestamp));
+}
     
     /**
      * Update game logic
