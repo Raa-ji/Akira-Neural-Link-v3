@@ -1,0 +1,347 @@
+/* =========================================
+   AKIRA - NEURAL LINK - CRT GAME STYLING
+   ========================================= */
+
+/* Reset & Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    color: #00ff00;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    user-select: none;
+}
+
+/* Game Container */
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Canvas Styling */
+#game-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* CRT Overlay */
+#crt-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    background: 
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 2px, 3px 100%;
+    animation: scanline 10s linear infinite;
+    box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.9);
+}
+
+/* CRT Flicker Animation */
+@keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+}
+
+@keyframes flicker {
+    0% { opacity: 0.97; }
+    5% { opacity: 0.95; }
+    10% { opacity: 0.9; }
+    15% { opacity: 0.95; }
+    20% { opacity: 0.99; }
+    50% { opacity: 0.95; }
+    80% { opacity: 0.9; }
+    100% { opacity: 0.97; }
+}
+
+.crt-flicker {
+    animation: flicker 0.15s infinite;
+}
+
+/* HUD Container */
+#hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* HUD Top Bar */
+.hud-top {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    text-shadow: 0 0 3px #FF00FF;
+}
+
+/* Health Display */
+.hud-health {
+    color: #00ff00;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.hud-health.critical {
+    color: #ff0000;
+    animation: pulse-red 0.5s infinite;
+}
+
+@keyframes pulse-red {
+    0% { text-shadow: 0 0 5px #ff0000; }
+    50% { text-shadow: 0 0 10px #ff0000; }
+    100% { text-shadow: 0 0 5px #ff0000; }
+}
+
+/* Objectives Display */
+.hud-objectives {
+    display: flex;
+    gap: 30px;
+    text-align: right;
+}
+
+.hud-nodes, .hud-viruses {
+    color: #00ffff;
+    font-size: 20px;
+}
+
+/* HUD Rules */
+.hud-rules {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid #00ff00;
+}
+
+.rule-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.rule-name {
+    color: #ffff00;
+    font-size: 14px;
+    text-shadow: 0 0 2px #ffff00;
+}
+
+.rule-toggle {
+    background: #000;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    padding: 5px 10px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.rule-toggle.active {
+    background: #00ff00;
+    color: #000;
+    box-shadow: 0 0 5px #00ff00;
+}
+
+.rule-toggle:disabled {
+    border-color: #333;
+    color: #333;
+    cursor: not-allowed;
+}
+
+.rule-timer {
+    color: #ff00ff;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* HUD Bottom Bar */
+.hud-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px;
+}
+
+.hud-controls {
+    flex: 1;
+}
+
+.control-hint {
+    color: #00ffff;
+    font-size: 14px;
+    text-shadow: 0 0 2px #00ffff;
+}
+
+.hud-sector {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.sector-label {
+    color: #ffff00;
+    font-size: 14px;
+    text-shadow: 0 0 2px #ffff00;
+}
+
+.sector-map {
+    width: 150px;
+    height: 150px;
+    border: 2px solid #00ff00;
+    background: rgba(0, 0, 0, 0.5);
+    margin-top: 5px;
+    position: relative;
+}
+
+/* Debug Overlay */
+#debug-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 30;
+    display: none;
+    pointer-events: none;
+}
+
+#debug-overlay.visible {
+    display: block;
+}
+
+#debug-info {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #00ff00;
+    font-size: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border: 1px solid #00ff00;
+}
+
+#debug-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Game Message Overlay */
+#game-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+}
+
+#game-message-title {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 5px #00ffff;
+}
+
+#game-message-content {
+    font-size: 24px;
+    margin-bottom: 40px;
+    text-align: center;
+    max-width: 80%;
+    line-height: 1.5;
+}
+
+#restart-btn {
+    background: #000;
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    padding: 15px 40px;
+    font-family: inherit;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-shadow: 0 0 3px #00ff00;
+}
+
+#restart-btn:hover {
+    background: #00ff00;
+    color: #000;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+/* Infection Effects */
+.infection-motor {
+    animation: movement-shake 0.1s infinite;
+}
+
+@keyframes movement-shake {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(1px, 1px); }
+    50% { transform: translate(-1px, -1px); }
+    75% { transform: translate(1px, -1px); }
+    100% { transform: translate(0, 0); }
+}
+
+.infection-visual {
+    filter: sepia(0.2) hue-rotate(30deg) saturate(1.5);
+}
+
+.infection-auditory .sector-map {
+    opacity: 0.3;
+    filter: hue-rotate(90deg) saturate(0.5);
+}
+
+/* Hidden class */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hud-rules {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .hud-top {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .hud-objectives {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

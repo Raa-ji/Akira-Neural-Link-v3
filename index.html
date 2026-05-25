@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akira - Neural Link</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Main game canvas -->
+        <canvas id="game-canvas" width="4096" height="4096"></canvas>
+        
+        <!-- CRT scanline overlay -->
+        <div id="crt-overlay"></div>
+        
+        <!-- HUD -->
+        <div id="hud">
+            <!-- Top bar -->
+            <div class="hud-top">
+                <div class="hud-health">HEALTH: <span id="health-display">100%</span></div>
+                <div class="hud-objectives">
+                    <span class="hud-nodes">NODES SECURE: <span id="nodes-secure-display">1/5</span></span>
+                    <span class="hud-viruses">VIRUSES ACTIVE: <span id="viruses-active-display">3</span></span>
+                </div>
+            </div>
+            
+            <!-- Rule toggles and timers -->
+            <div class="hud-rules">
+                <div class="rule-item rule-1">
+                    <span class="rule-name">FIREWALL IS WALL</span>
+                    <button class="rule-toggle" id="rule1-toggle" disabled>OFF</button>
+                </div>
+                <div class="rule-item rule-2">
+                    <span class="rule-name">NODES ARE LOCKED</span>
+                    <button class="rule-toggle" id="rule2-toggle" disabled>OFF</button>
+                </div>
+                <div class="rule-item rule-3">
+                    <span class="rule-name">VIRUS IS STOP</span>
+                    <span class="rule-timer" id="rule3-timer">--:--</span>
+                </div>
+                <div class="rule-item rule-4">
+                    <span class="rule-name">VIRUS IS SLOW</span>
+                    <span class="rule-timer" id="rule4-timer">--:--</span>
+                </div>
+                <div class="rule-item rule-5">
+                    <span class="rule-name">COOLANT IS SAFE</span>
+                    <span class="rule-timer" id="rule5-timer">--:--</span>
+                </div>
+            </div>
+            
+            <!-- Bottom bar -->
+            <div class="hud-bottom">
+                <div class="hud-controls">
+                    <span class="control-hint">WASD: Move | QE: Turn | C: Capture | V: Quarantine | C: Clean</span>
+                </div>
+                <div class="hud-sector">
+                    <span class="sector-label">SECTOR</span>
+                    <div class="sector-map" id="sector-map"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Debug overlay (hidden by default) -->
+        <div id="debug-overlay" class="hidden">
+            <div id="debug-info"></div>
+            <div id="debug-grid"></div>
+        </div>
+        
+        <!-- Game over / win screen -->
+        <div id="game-message" class="hidden">
+            <h1 id="game-message-title"></h1>
+            <p id="game-message-content"></p>
+            <button id="restart-btn">RESTART SYSTEM</button>
+        </div>
+    </div>
+    
+    <!-- Main module entry point -->
+    <script type="module" src="Main.js"></script>
+</body>
+</html>
