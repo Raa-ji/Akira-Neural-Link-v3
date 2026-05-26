@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akira - Neural Link</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Main game canvas -->
+        <canvas id="game-canvas" width="4096" height="4096"></canvas>
+        
+        <!-- CRT scanline overlay -->
+        <div id="crt-overlay"></div>
+        
+        <!-- HUD -->
+        <div id="hud-overlay">
+            <!-- Neural Link Header -->
+            <div class="hud-title">NEURAL LINK ESTABLISHED</div>
+
+            <!-- Row 1: Player Vitals -->
+            <div class="hud-row">
+                <div class="hud-row-title">PLAYER VITALS</div>
+                <div class="vitals-container">
+                    <div class="vitals-health">
+                        <span class="vitals-label">HEALTH:</span>
+                        <span class="vitals-value" id="health-display">100%</span>
+                    </div>
+                    <div class="health-bar-container">
+                        <div class="health-bar" id="health-bar"></div>
+                    </div>
+                    <div class="vitals-status">
+                        <span class="vitals-label">NODES SECURE:</span>
+                        <span class="vitals-value" id="nodes-secure-display">1/5</span>
+                    </div>
+                    <div class="vitals-status">
+                        <span class="vitals-label">VIRUSES ACTIVE:</span>
+                        <span class="vitals-value" id="viruses-active-display">3 (0 quarantined)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="hud-divider"></div>
+
+            <!-- Row 2: Action Context -->
+            <div class="hud-row">
+                <div class="hud-row-title">ACTION CONTEXT</div>
+                <div class="action-status">
+                    <span class="vitals-label">CAPTURE STATUS:</span>
+                    <div class="capture-pill" id="capture-status">
+                        <span class="capture-text">NO ENEMIES NEARBY</span>
+                        <span class="capture-hint">[C]</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="hud-divider"></div>
+
+            <!-- Row 3: Toggle Rules -->
+            <div class="hud-row">
+                <div class="hud-row-title">TOGGLE RULES (Press to flip)</div>
+                <div class="toggle-rules">
+                    <button class="rule-button rule-1" id="rule1-toggle" disabled>
+                        <span class="rule-label">[1] FIREWALL IS WALL</span>
+                        <span class="rule-state" id="rule1-state">[INACTIVE]</span>
+                    </button>
+                    <button class="rule-button rule-2" id="rule2-toggle" disabled>
+                        <span class="rule-label">[2] NODES ARE LOCKED</span>
+                        <span class="rule-state" id="rule2-state">[INACTIVE]</span>
+                    </button>
+                </div>
+            </div>
+        
+            <!-- Divider -->
+            <div class="hud-divider"></div>
+
+            <!-- Row 4: Duration Rules -->
+            <div class="hud-row">
+                <div class="hud-row-title">DURATION RULES</div>
+                <div class="duration-rules">
+                    <div class="duration-item rule-3">
+                        <span class="duration-label">[3] VIRUS IS STOP</span>
+                        <span class="duration-value" id="rule3-timer">READY</span>
+                    </div>
+                    <div class="duration-item rule-4">
+                        <span class="duration-label">[4] VIRUS IS SLOW</span>
+                        <span class="duration-value" id="rule4-timer">READY</span>
+                    </div>
+                    <div class="duration-item rule-5">
+                        <span class="duration-label">[5] COOLANT IS SAFE</span>
+                        <span class="duration-value" id="rule5-timer">READY</span>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Debug toggle -->
+            <div class="hud-footer">
+                <span class="debug-hint">[F1] DEBUG</span>
+            </div>
+        </div>
+        
+        <!-- Game over / win screen -->
+        <div id="game-message" class="hidden">
+            <h1 id="game-message-title"></h1>
+            <p id="game-message-content"></p>
+            <button id="restart-btn">RESTART SYSTEM</button>
+        </div>
+    </div>
+    
+    <!-- Main module entry point -->
+    <script type="module" src="Main.js"></script>
+</body>
+</html>

@@ -1,7 +1,3 @@
-/* =========================================
-   AKIRA - NEURAL LINK - CRT GAME STYLING
-   ========================================= */
-
 /* Reset & Base */
 * {
     margin: 0;
@@ -75,147 +71,226 @@ html, body {
     animation: flicker 0.15s infinite;
 }
 
-/* HUD Container */
-#hud {
+/* Compact HUD Overlay - Top Left Corner */
+#hud-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 20;
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    max-width: 450px;
+    width: 30vw;
+    background-color: rgba(25, 10, 35, 0.85);
+    border: 2px solid #ff007f;
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+    padding: 15px;
+    color: #00f0ff;
+    font-family: 'Courier New', monospace;
 }
 
-/* HUD Top Bar */
-.hud-top {
-    display: flex;
-    justify-content: space-between;
-    padding: 20px;
-    text-shadow: 0 0 3px #FF00FF;
+/* Title */
+.hud-title {
+    color: #ff007f;
+    font-size: clamp(12px, 1.2vw, 18px);
+    font-weight: bold;
+    text-shadow: 0 0 5px #ff007f;
+    margin-bottom: 15px;
+    text-align: center;
+    letter-spacing: 2px;
 }
 
-/* Health Display */
-.hud-health {
-    color: #00ff00;
-    font-size: 24px;
+/* Divider */
+.hud-divider {
+    border-top: 1px dashed #ff007f;
+    margin: 10px 0;
+}
+
+/* Fluid Typography */
+.hud-row {
+    font-size: clamp(12px, 1.2vw, 18px);
+    line-height: 1.4;
+}
+
+.vitals-label, .rule-label, .duration-label, .capture-text, .debug-hint {
+    font-size: clamp(12px, 1.2vw, 18px);
     font-weight: bold;
 }
 
-.hud-health.critical {
-    color: #ff0000;
-    animation: pulse-red 0.5s infinite;
+.vitals-value, .rule-state, .duration-value {
+    font-size: clamp(14px, 1.4vw, 20px);
 }
 
-@keyframes pulse-red {
-    0% { text-shadow: 0 0 5px #ff0000; }
-    50% { text-shadow: 0 0 10px #ff0000; }
-    100% { text-shadow: 0 0 5px #ff0000; }
-}
-
-/* Objectives Display */
-.hud-objectives {
-    display: flex;
-    gap: 30px;
-    text-align: right;
-}
-
-.hud-nodes, .hud-viruses {
-    color: #00ffff;
-    font-size: 20px;
-}
-
-/* HUD Rules */
-.hud-rules {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid #00ff00;
-}
-
-.rule-item {
+/* Row 1: Player Vitals */
+.vitals-section {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 5px;
 }
 
-.rule-name {
-    color: #ffff00;
-    font-size: 14px;
-    text-shadow: 0 0 2px #ffff00;
+.vitals-health {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
 }
 
-.rule-toggle {
-    background: #000;
-    border: 1px solid #00ff00;
-    color: #00ff00;
+.health-bar-container {
+    width: 100%;
+    height: 12px;
+    background: #1a0a1f;
+    border: 1px solid #ff007f;
+    margin: 5px 0;
+}
+
+.health-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(to right, #ff3333, #ffaa00, #33ff33);
+    transition: width 0.2s ease;
+}
+
+.vitals-status {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+/* Row 2: Action Context */
+.action-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.action-status {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.capture-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #33ff33;
     padding: 5px 10px;
-    font-family: inherit;
-    font-size: 12px;
+    color: #33ff33;
+    min-width: 250px;
+    font-size: clamp(12px, 1.2vw, 18px);
+    box-shadow: 0 0 5px rgba(51, 255, 51, 0.4);
+}
+
+.capture-hint {
+    font-size: clamp(10px, 1vw, 14px);
+    margin-left: 10px;
+    opacity: 0.7;
+}
+
+.capture-pill.ready {
+    background: rgba(51, 255, 51, 0.1);
+}
+
+.capture-pill.nearby {
+    background: rgba(51, 255, 51, 0.2);
+    box-shadow: 0 0 8px rgba(51, 255, 51, 0.6);
+}
+
+/* Row 3: Toggle Rules */
+.rules-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.rule-title {
+    color: #ffaa00;
+    margin-bottom: 5px;
+}
+
+.toggle-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.rule-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1a0a1f;
+    border: 1px solid #00f0ff;
+    color: #00f0ff;
+    padding: 8px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
-.rule-toggle.active {
-    background: #00ff00;
-    color: #000;
-    box-shadow: 0 0 5px #00ff00;
-}
-
-.rule-toggle:disabled {
+.rule-button:disabled {
     border-color: #333;
     color: #333;
     cursor: not-allowed;
 }
 
-.rule-timer {
-    color: #ff00ff;
-    font-size: 16px;
-    font-weight: bold;
+.rule-button.active {
+    background: #ffaa00;
+    color: #1a0a1f;
+    border-color: #ffaa00;
+    box-shadow: 0 0 5px #ffaa00;
 }
 
-/* HUD Bottom Bar */
-.hud-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding: 20px;
+.rule-label {
+    flex-grow: 1;
 }
 
-.hud-controls {
-    flex: 1;
-}
-
-.control-hint {
-    color: #00ffff;
-    font-size: 14px;
-    text-shadow: 0 0 2px #00ffff;
-}
-
-.hud-sector {
+/* Row 4: Duration Rules */
+.duration-section {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    gap: 5px;
 }
 
-.sector-label {
-    color: #ffff00;
-    font-size: 14px;
-    text-shadow: 0 0 2px #ffff00;
+.duration-title {
+    color: #00f0ff;
+    margin-bottom: 5px;
 }
 
-.sector-map {
-    width: 150px;
-    height: 150px;
-    border: 2px solid #00ff00;
-    background: rgba(0, 0, 0, 0.5);
-    margin-top: 5px;
-    position: relative;
+.duration-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.duration-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 8px;
+    background: rgba(0, 0, 0, 0.4);
+    border-left: 3px solid #33ff33;
+    color: #33ff33;
+}
+
+.duration-item.cooldown {
+    border-left-color: #ff0000;
+    color: #ff0000;
+    background: rgba(50, 0, 0, 0.4);
+}
+
+.duration-item.ready {
+    border-left-color: #00f0ff;
+    color: #00f0ff;
+}
+
+.duration-value {
+    font-family: monospace;
+}
+
+/* Debug hint */
+.hud-footer {
+    text-align: center;
+    color: #555;
+    font-size: clamp(10px, 1vw, 14px);
+    margin-top: 10px;
 }
 
 /* Debug Overlay */
@@ -331,17 +406,15 @@ html, body {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .hud-rules {
+    #hud-overlay {
+        max-width: 100%;
+        width: 100%;
+        top: 0;
+        left: 0;
+        padding: 10px;
+    }
+    
+    .toggle-rules {
         grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .hud-top {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .hud-objectives {
-        flex-direction: column;
-        gap: 10px;
     }
 }

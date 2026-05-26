@@ -14,57 +14,88 @@
         <!-- CRT scanline overlay -->
         <div id="crt-overlay"></div>
         
-        <!-- HUD -->
-        <div id="hud">
-            <!-- Top bar -->
-            <div class="hud-top">
-                <div class="hud-health">HEALTH: <span id="health-display">100%</span></div>
-                <div class="hud-objectives">
-                    <span class="hud-nodes">NODES SECURE: <span id="nodes-secure-display">1/5</span></span>
-                    <span class="hud-viruses">VIRUSES ACTIVE: <span id="viruses-active-display">3</span></span>
+        <!-- Compact HUD - Top Left Corner -->
+        <div id="hud-overlay">
+            <!-- Title -->
+            <div class="hud-title">NEURAL LINK ESTABLISHED</div>
+
+            <!-- Row 1: Player Vitals -->
+            <div class="hud-row vitals-section">
+                <div class="vitals-health">
+                    <span class="vitals-label">HEALTH:</span>
+                    <span class="vitals-value" id="health-display">100%</span>
+                </div>
+                <div class="health-bar-container">
+                    <div class="health-bar" id="health-bar"></div>
+                </div>
+                <div class="vitals-status">
+                    <span class="vitals-label">NODES SECURE:</span>
+                    <span class="vitals-value" id="nodes-secure-display">1/5</span>
+                </div>
+                <div class="vitals-status">
+                    <span class="vitals-label">VIRUSES ACTIVE:</span>
+                    <span class="vitals-value" id="viruses-active-display">3 (0 quarantined)</span>
                 </div>
             </div>
-            
-            <!-- Rule toggles and timers -->
-            <div class="hud-rules">
-                <div class="rule-item rule-1">
-                    <span class="rule-name">FIREWALL IS WALL</span>
-                    <button class="rule-toggle" id="rule1-toggle" disabled>OFF</button>
-                </div>
-                <div class="rule-item rule-2">
-                    <span class="rule-name">NODES ARE LOCKED</span>
-                    <button class="rule-toggle" id="rule2-toggle" disabled>OFF</button>
-                </div>
-                <div class="rule-item rule-3">
-                    <span class="rule-name">VIRUS IS STOP</span>
-                    <span class="rule-timer" id="rule3-timer">--:--</span>
-                </div>
-                <div class="rule-item rule-4">
-                    <span class="rule-name">VIRUS IS SLOW</span>
-                    <span class="rule-timer" id="rule4-timer">--:--</span>
-                </div>
-                <div class="rule-item rule-5">
-                    <span class="rule-name">COOLANT IS SAFE</span>
-                    <span class="rule-timer" id="rule5-timer">--:--</span>
+
+            <!-- Divider -->
+            <div class="hud-divider"></div>
+
+            <!-- Row 2: Action Context -->
+            <div class="hud-row action-section">
+                <div class="action-status">
+                    <span class="vitals-label">CAPTURE STATUS:</span>
+                    <div class="capture-pill" id="capture-status">
+                        <span class="capture-text">NO ENEMIES NEARBY</span>
+                        <span class="capture-hint">[C]</span>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Bottom bar -->
-            <div class="hud-bottom">
-                <div class="hud-controls">
-                    <span class="control-hint">WASD: Move | QE: Turn | C: Capture | V: Quarantine | C: Clean</span>
-                </div>
-                <div class="hud-sector">
-                    <span class="sector-label">SECTOR</span>
-                    <div class="sector-map" id="sector-map"></div>
+
+            <!-- Divider -->
+            <div class="hud-divider"></div>
+
+            <!-- Row 3: Toggle Rules -->
+            <div class="hud-row rules-section">
+                <div class="rule-title">TOGGLE RULES (Press to flip):</div>
+                <div class="toggle-rules">
+                    <button class="rule-button rule-1" id="rule1-toggle" disabled>
+                        <span class="rule-label">[1] FIREWALL IS WALL</span>
+                        <span class="rule-state" id="rule1-state">[INACTIVE]</span>
+                    </button>
+                    <button class="rule-button rule-2" id="rule2-toggle" disabled>
+                        <span class="rule-label">[2] NODES ARE LOCKED</span>
+                        <span class="rule-state" id="rule2-state">[INACTIVE]</span>
+                    </button>
                 </div>
             </div>
-        </div>
         
-        <!-- Debug overlay (hidden by default) -->
-        <div id="debug-overlay" class="hidden">
-            <div id="debug-info"></div>
-            <div id="debug-grid"></div>
+            <!-- Divider -->
+            <div class="hud-divider"></div>
+
+            <!-- Row 4: Duration Rules -->
+            <div class="hud-row duration-section">
+                <div class="duration-title">DURATION RULES:</div>
+                <div class="duration-rules">
+                    <div class="duration-item rule-3" id="rule3-row">
+                        <span class="duration-label">[3] VIRUS IS STOP</span>
+                        <span class="duration-value" id="rule3-timer">READY</span>
+                    </div>
+                    <div class="duration-item rule-4" id="rule4-row">
+                        <span class="duration-label">[4] VIRUS IS SLOW</span>
+                        <span class="duration-value" id="rule4-timer">READY</span>
+                    </div>
+                    <div class="duration-item rule-5" id="rule5-row">
+                        <span class="duration-label">[5] COOLANT IS SAFE</span>
+                        <span class="duration-value" id="rule5-timer">READY</span>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Debug toggle -->
+            <div class="hud-footer">
+                <span class="debug-hint">[F1] DEBUG</span>
+            </div>
         </div>
         
         <!-- Game over / win screen -->
@@ -75,7 +106,12 @@
         </div>
     </div>
     
+    <!-- Debug overlay -->
+    <div id="debug-overlay" class="hidden">
+        <pre id="debug-info"></pre>
+    </div>
+    
     <!-- Main module entry point -->
-    <script type="module" src="Main.js"></script>
+    <script type="module" src="main.js"></script>
 </body>
 </html>

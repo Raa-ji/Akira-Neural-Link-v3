@@ -93,7 +93,8 @@ export default class InputHandler {
         const preventKeys = [
             'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
             ' ', 'Spacebar', // Space
-            'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'
+            'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12',
+            '1', '2', '3', '4', '5'
         ];
         
         return preventKeys.includes(key);
@@ -111,13 +112,25 @@ export default class InputHandler {
      */
     _getKeyCode(key) {
         const keyMap = {
+            // Movement keys
             'w': 'KeyW', 's': 'KeyS', 'a': 'KeyA', 'd': 'KeyD',
             'q': 'KeyQ', 'e': 'KeyE',
-            'c': 'KeyC', 'v': 'KeyV',
-            'f': 'KeyF', 'F1': 'F1',
+            // Action keys
+            'c': 'KeyC', 'v': 'KeyV', 'f': 'KeyF',
+            // Number keys (including rule hotkeys)
+            '1': 'Digit1', '2': 'Digit2', '3': 'Digit3', '4': 'Digit4', '5': 'Digit5',
+            '6': 'Digit6', '7': 'Digit7', '8': 'Digit8', '9': 'Digit9', '0': 'Digit0',
+            // Function keys
+            'F1': 'F1', 'F2': 'F2', 'F3': 'F3', 'F4': 'F4', 'F5': 'F5',
+            'F6': 'F6', 'F7': 'F7', 'F8': 'F8', 'F9': 'F9', 'F10': 'F10',
+            'F11': 'F11', 'F12': 'F12',
+            // Arrow keys
             'ArrowUp': 'ArrowUp', 'ArrowDown': 'ArrowDown',
             'ArrowLeft': 'ArrowLeft', 'ArrowRight': 'ArrowRight',
-            ' ': 'Space'
+            // Special keys
+            ' ': 'Space', 'Spacebar': 'Space', 'Enter': 'Enter', 'Escape': 'Escape',
+            'Tab': 'Tab', 'Shift': 'ShiftLeft', 'Control': 'ControlLeft',
+            'Alt': 'AltLeft', 'CapsLock': 'CapsLock'
         };
         
         return keyMap[key] || key;

@@ -8,8 +8,14 @@ export default class Effects {
     constructor() {
         // DOM element references
         this.healthDisplay = document.getElementById('health-display');
+        this.healthBar = document.getElementById('health-bar');
         this.nodesSecureDisplay = document.getElementById('nodes-secure-display');
         this.virusesActiveDisplay = document.getElementById('viruses-active-display');
+        
+        // Capture status elements
+        this.captureStatus = document.getElementById('capture-status');
+        this.captureText = document.querySelector('.capture-text');
+        this.captureHint = document.querySelector('.capture-hint');
         
         // Rule UI elements
         this.ruleToggles = {
@@ -17,10 +23,22 @@ export default class Effects {
             2: document.getElementById('rule2-toggle')
         };
         
+        this.ruleStates = {
+            1: document.getElementById('rule1-state'),
+            2: document.getElementById('rule2-state')
+        };
+        
         this.ruleTimers = {
             3: document.getElementById('rule3-timer'),
             4: document.getElementById('rule4-timer'),
             5: document.getElementById('rule5-timer')
+        };
+        
+        // Row elements
+        this.ruleRows = {
+            3: document.getElementById('rule3-row'),
+            4: document.getElementById('rule4-row'),
+            5: document.getElementById('rule5-row')
         };
         
         // HUD rule names for reference
@@ -46,6 +64,9 @@ export default class Effects {
         // Screen shake state
         this.shakeTimer = 0;
         this.shakeInterval = 0.05; // Shake every 50ms
+        
+        // Capture status state
+        this.virusNearby = false;
     }
     
     /**
@@ -77,6 +98,9 @@ export default class Effects {
     _updateHealthHUD(health) {
         // Update text
         this.healthDisplay.textContent = `${Math.round(health)}%`;
+        
+        // Update bar width
+        this.healthBar.style.width = `${health}%`;
         
         // Update color based on health level
         if (health <= 30) {
@@ -113,11 +137,17 @@ export default class Effects {
         // Update toggle rules (1, 2)
         for (const ruleId of [1, 2]) {
             const ruleState = rulesManager.getRuleState(ruleId);
-            if (ruleState) {
-                const toggleButton = this.ruleToggles[ruleId];
-                if (toggleButton) {
-                    toggleButton.textContent = ruleState.active ? 'ON' : 'OFF';
-                    toggleButton.classList.toggle('active', ruleState.active);
+            const toggleButton = this.ruleToggles[ruleId];
+            const ruleStateElement = this.ruleStates[ruleId];
+            
+            if (toggleButton && ruleStateElement) {
+                if (ruleState.active) {
+                    toggleButton.classList.add('active');
+                    ruleStateElement.textContent = '[ACTIVE]';
+                    toggleButton.disabled = false;
+                } else {
+                    toggleButton.classList.remove('active');
+                    ruleStateElement.textContent = '[INACTIVE]';
                     toggleButton.disabled = false;
                 }
             }
@@ -126,26 +156,30 @@ export default class Effects {
         // Update duration rules (3, 4, 5)
         for (const ruleId of [3, 4, 5]) {
             const ruleState = rulesManager.getRuleState(ruleId);
-            if (ruleState) {
-                const timerElement = this.ruleTimers[ruleId];
-                if (timerElement) {
-                    if (ruleState.active) {
-                        // Show active timer (format: MM:SS)
-                        const minutes = Math.floor(ruleState.timer / 60);
-                        const seconds = Math.floor(ruleState.timer % 60);
-                        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                        timerElement.style.color = '#00ff00'; // Active = green
-                    } else if (ruleState.cooldownTimer > 0) {
-                        // Show cooldown timer
-                        const minutes = Math.floor(ruleState.cooldownTimer / 60);
-                        const seconds = Math.floor(ruleState.cooldownTimer % 60);
-                        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                        timerElement.style.color = '#ff0000'; // Cooldown = red
-                    } else {
-                        // Ready to activate
-                        timerElement.textContent = 'READY';
-                        timerElement.style.color = '#00ffff'; // Ready = cyan
-                    }
+            const timerElement = this.ruleTimers[ruleId];
+            const rowElement = this.ruleRows[ruleId];
+            
+            if (timerElement && rowElement) {
+                if (ruleState.active) {
+                    // Show active timer (format: X.Xs)
+                    const seconds = ruleState.timer.toFixed(1);
+                    timerElement.textContent = `${seconds}s ACTIVE`;
+                    rowElement.classList.remove('cooldown', 'ready');
+                    rowElement.classList.add('active');
+                    timerElement.style.color = '#33ff33'; // Active = green
+                } else if (ruleState.cooldownTimer > 0) {
+                    // Show cooldown timer
+                    const seconds = ruleState.cooldownTimer.toFixed(1);
+                    timerElement.textContent = `${seconds}s COOLDOWN`;
+                    rowElement.classList.remove('ready', 'active');
+                    rowElement.classList.add('cooldown');
+                    timerElement.style.color = '#ff0000'; // Cooldown = red
+                } else {
+                    // Ready to activate
+                    timerElement.textContent = 'READY';
+                    rowElement.classList.remove('cooldown', 'active');
+                    rowElement.classList.add('ready');
+                    timerElement.style.color = '#00f0ff'; // Ready = cyan
                 }
             }
         }
@@ -330,5 +364,26 @@ export default class Effects {
         }
         
         return html;
+    }
+    
+    /**
+     * Update capture status display
+     * @param {boolean} nearby - Whether virus is within capture range
+     * @param {string} status - Status text to display
+     */
+    updateCaptureStatus(nearby, status) {
+        this.virusNearby = nearby;
+        
+        if (nearby) {
+            this.captureStatus.classList.add('nearby');
+            this.captureStatus.classList.remove('ready');
+            this.captureText.textContent = status || 'VIRUS NEARBY - READY TO CAPTURE [C]';
+            this.captureHint.textContent = 'READY [C]';
+        } else {
+            this.captureStatus.classList.remove('nearby');
+            this.captureStatus.classList.add('ready');
+            this.captureText.textContent = 'NO ENEMIES NEARBY';
+            this.captureHint.textContent = '[C]';
+        }
     }
 }
