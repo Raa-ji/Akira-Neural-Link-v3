@@ -22,7 +22,7 @@ All gameplay, rules, visuals, and mechanics must match the original v0.10 spec (
 ### 2. RULES SYSTEM  
 | ID | Name              | Type      | Duration / Cooldown       | Effect                                                                 |
 |----|-------------------|-----------|---------------------------|------------------------------------------------------------------------|
-| [1]| FIREWALL IS WALL  | Toggle    | Persistent                | Rule ON by default; Firewalls (tile 2) become solid *only* when ON   |
+| [1]| FIREWALL IS WALL  | Toggle    | Persistent / 10s CD       | Rule ON by default; Firewalls (tile 2) become solid *only* when ON   |
 | [2]| NODES ARE LOCKED  | Duration  | 5s active / 60s CD        | Nodes cannot be infected, cleaned, or interacted with                 |
 | [3]| VIRUS IS STOP     | Duration  | 3.5s active / 60s CD      | All viruses freeze in place            |
 | [4]| VIRUS IS SLOW     | Duration  | 8s active / 30s CD        | Viruses move at 60% speed                                              |

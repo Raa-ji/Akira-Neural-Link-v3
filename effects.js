@@ -17,10 +17,10 @@ export default class Effects {
         this.captureText = document.querySelector('.capture-text');
         this.captureHint = document.querySelector('.capture-hint');
         
-        // Rule UI elements
-        this.ruleToggles = {
-            1: document.getElementById('rule1-toggle'),
-            2: document.getElementById('rule2-toggle')
+        // Rule UI elements for toggle rules with timers
+        this.ruleRows = {
+            1: document.getElementById('rule1-row'),
+            2: document.getElementById('rule2-row')
         };
         
         this.ruleStates = {
@@ -29,16 +29,38 @@ export default class Effects {
         };
         
         this.ruleTimers = {
+            1: document.getElementById('rule1-timer'),
+            2: document.getElementById('rule2-timer')
+        };
+        
+        // Duration rule elements (3, 4, 5)
+        this.ruleRowsDuration = {
+            3: document.getElementById('rule3-row'),
+            4: document.getElementById('rule4-row'),
+            5: document.getElementById('rule5-row')
+        };
+        
+        this.ruleTimersDuration = {
             3: document.getElementById('rule3-timer'),
             4: document.getElementById('rule4-timer'),
             5: document.getElementById('rule5-timer')
         };
         
-        // Row elements
-        this.ruleRows = {
+        // All rule rows for easy access
+        this.allRuleRows = {
+            1: document.getElementById('rule1-row'),
+            2: document.getElementById('rule2-row'),
             3: document.getElementById('rule3-row'),
             4: document.getElementById('rule4-row'),
             5: document.getElementById('rule5-row')
+        };
+        
+        this.allRuleTimers = {
+            1: document.getElementById('rule1-timer'),
+            2: document.getElementById('rule2-timer'),
+            3: document.getElementById('rule3-timer'),
+            4: document.getElementById('rule4-timer'),
+            5: document.getElementById('rule5-timer')
         };
         
         // HUD rule names for reference
@@ -134,53 +156,83 @@ export default class Effects {
      * @param {RulesManager} rulesManager - Rule state manager
      */
     _updateRuleUI(rulesManager) {
-        // Update toggle rules (1, 2)
+        // Get all rule states
+        const ruleStates = rulesManager.getAllRuleStates();
+        
+        // Update Rules 1-2 (toggle with cooldown and duration)
         for (const ruleId of [1, 2]) {
-            const ruleState = rulesManager.getRuleState(ruleId);
-            const toggleButton = this.ruleToggles[ruleId];
-            const ruleStateElement = this.ruleStates[ruleId];
+            const rowElement = this.allRuleRows[ruleId];
+            const timerElement = this.allRuleTimers[ruleId];
             
-            if (toggleButton && ruleStateElement) {
-                if (ruleState.active) {
-                    toggleButton.classList.add('active');
-                    ruleStateElement.textContent = '[ACTIVE]';
-                    toggleButton.disabled = false;
+            if (!rowElement || !timerElement) continue;
+            
+            // Update active state class
+            rowElement.classList.toggle('active', ruleStates[ruleId].active);
+            
+            // Update state text and timer
+            if (ruleStates[ruleId].active) {
+                rowElement.classList.remove('cooldown', 'ready');
+                rowElement.classList.add('active');
+                
+                if (ruleId === 1) {
+                    timerElement.textContent = 'ON';
                 } else {
-                    toggleButton.classList.remove('active');
-                    ruleStateElement.textContent = '[INACTIVE]';
-                    toggleButton.disabled = false;
+                    timerElement.textContent = ruleStates[ruleId].activeTimer.toFixed(1) + 's';
+                    timerElement.className = 'rule-timer duration';
+                }
+            } else if (ruleId === 1 && ruleStates[ruleId].cooldownTimer > 0) {
+                // Rule 1 is toggle with cooldown
+                rowElement.classList.remove('active', 'ready');
+                rowElement.classList.add('cooldown');
+                timerElement.textContent = ruleStates[ruleId].cooldownTimer.toFixed(1) + 's';
+                timerElement.className = 'rule-timer cooldown';
+            } else if (ruleId === 2 && ruleStates[ruleId].cooldownTimer > 0) {
+                // Rule 2 is duration with cooldown
+                rowElement.classList.remove('active', 'ready');
+                rowElement.classList.add('cooldown');
+                timerElement.textContent = ruleStates[ruleId].cooldownTimer.toFixed(1) + 's';
+                timerElement.className = 'rule-timer cooldown';
+            } else if (ruleId === 2 && ruleStates[ruleId].activeTimer > 0) {
+                // Rule 2 is duration with active timer
+                rowElement.classList.remove('cooldown', 'ready');
+                rowElement.classList.add('active');
+                timerElement.textContent = ruleStates[ruleId].activeTimer.toFixed(1) + 's';
+                timerElement.className = 'rule-timer duration';
+            } else {
+                // Rule is ready
+                rowElement.classList.remove('active', 'cooldown');
+                rowElement.classList.add('ready');
+                
+                if (ruleId === 1) {
+                    timerElement.textContent = 'READY';
+                } else {
+                    timerElement.textContent = 'READY';
                 }
             }
         }
         
-        // Update duration rules (3, 4, 5)
+        // Update Rules 3-5 (duration only)
         for (const ruleId of [3, 4, 5]) {
-            const ruleState = rulesManager.getRuleState(ruleId);
-            const timerElement = this.ruleTimers[ruleId];
-            const rowElement = this.ruleRows[ruleId];
+            const rowElement = this.ruleRowsDuration[ruleId];
+            const timerElement = this.ruleTimersDuration[ruleId];
             
-            if (timerElement && rowElement) {
-                if (ruleState.active) {
-                    // Show active timer (format: X.Xs)
-                    const seconds = ruleState.timer.toFixed(1);
-                    timerElement.textContent = `${seconds}s ACTIVE`;
-                    rowElement.classList.remove('cooldown', 'ready');
-                    rowElement.classList.add('active');
-                    timerElement.style.color = '#33ff33'; // Active = green
-                } else if (ruleState.cooldownTimer > 0) {
-                    // Show cooldown timer
-                    const seconds = ruleState.cooldownTimer.toFixed(1);
-                    timerElement.textContent = `${seconds}s COOLDOWN`;
-                    rowElement.classList.remove('ready', 'active');
-                    rowElement.classList.add('cooldown');
-                    timerElement.style.color = '#ff0000'; // Cooldown = red
-                } else {
-                    // Ready to activate
-                    timerElement.textContent = 'READY';
-                    rowElement.classList.remove('cooldown', 'active');
-                    rowElement.classList.add('ready');
-                    timerElement.style.color = '#00f0ff'; // Ready = cyan
-                }
+            if (!rowElement || !timerElement) continue;
+            
+            if (ruleStates[ruleId].active) {
+                rowElement.classList.remove('cooldown', 'ready');
+                rowElement.classList.add('active');
+                timerElement.textContent = ruleStates[ruleId].activeTimer.toFixed(1) + 's';
+                timerElement.className = 'duration-value active';
+            } else if (ruleStates[ruleId].cooldownTimer > 0) {
+                rowElement.classList.remove('active', 'ready');
+                rowElement.classList.add('cooldown');
+                timerElement.textContent = ruleStates[ruleId].cooldownTimer.toFixed(1) + 's';
+                timerElement.className = 'duration-value cooldown';
+            } else {
+                rowElement.classList.remove('active', 'cooldown');
+                rowElement.classList.add('ready');
+                timerElement.textContent = 'READY';
+                timerElement.className = 'duration-value ready';
             }
         }
     }

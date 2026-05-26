@@ -55,18 +55,24 @@
             <!-- Divider -->
             <div class="hud-divider"></div>
 
-            <!-- Row 3: Toggle Rules -->
+            <!-- Row 3: Toggle Rules with duration display -->
             <div class="hud-row rules-section">
-                <div class="rule-title">TOGGLE RULES (Press to flip):</div>
+                <div class="rule-title">RULES (Press to toggle/activate):</div>
                 <div class="toggle-rules">
-                    <button class="rule-button rule-1" id="rule1-toggle" disabled>
+                    <div class="rule-row rule-1" id="rule1-row">
                         <span class="rule-label">[1] FIREWALL IS WALL</span>
-                        <span class="rule-state" id="rule1-state">[INACTIVE]</span>
-                    </button>
-                    <button class="rule-button rule-2" id="rule2-toggle" disabled>
+                        <div class="rule-display">
+                            <span class="rule-state" id="rule1-state">OFF</span>
+                            <span class="rule-timer" id="rule1-timer">READY</span>
+                        </div>
+                    </div>
+                    <div class="rule-row rule-2" id="rule2-row">
                         <span class="rule-label">[2] NODES ARE LOCKED</span>
-                        <span class="rule-state" id="rule2-state">[INACTIVE]</span>
-                    </button>
+                        <div class="rule-display">
+                            <span class="rule-state" id="rule2-state">INACTIVE</span>
+                            <span class="rule-timer" id="rule2-timer">READY</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         
