@@ -12,7 +12,7 @@ export default class RulesManager {
             1: {
                 name: 'FIREWALL IS WALL',
                 type: 'toggle',
-                active: false,
+                active: true,       // ON by default as per spec
                 default: true,
                 cooldown: 10.0,     // 10s cooldown
                 cooldownTimer: 0.0
@@ -65,27 +65,38 @@ export default class RulesManager {
      * @param {number} dt - Delta time in seconds
      */
     update(dt) {
-        // Update all duration rules
-        for (const ruleId of [2, 3, 4, 5]) {
+        // Update all rules
+        for (const ruleId in this.RULES) {
             const rule = this.RULES[ruleId];
             
-            if (rule.active) {
-                // Decrement active timer
-                rule.activeTimer -= dt;
-                
-                if (rule.activeTimer <= 0) {
-                    // Duration ended, start cooldown
-                    rule.active = false;
-                    rule.activeTimer = 0;
-                    rule.cooldownTimer = rule.cooldown;
+            if (rule.type === 'duration') {
+                if (rule.active) {
+                    // Decrement active timer
+                    rule.activeTimer -= dt;
+                    
+                    if (rule.activeTimer <= 0) {
+                        // Duration ended, start cooldown
+                        rule.active = false;
+                        rule.activeTimer = 0;
+                        rule.cooldownTimer = rule.cooldown;
+                    }
+                } else if (rule.cooldownTimer > 0) {
+                    // Decrement cooldown timer
+                    rule.cooldownTimer -= dt;
+                    
+                    if (rule.cooldownTimer <= 0) {
+                        // Cooldown complete
+                        rule.cooldownTimer = 0;
+                    }
                 }
-            } else if (rule.cooldownTimer > 0) {
-                // Decrement cooldown timer
-                rule.cooldownTimer -= dt;
-                
-                if (rule.cooldownTimer <= 0) {
-                    // Cooldown complete
-                    rule.cooldownTimer = 0;
+            } else if (rule.type === 'toggle') {
+                // Toggle rules (Rule 1) only have cooldown timer
+                if (rule.cooldownTimer > 0) {
+                    rule.cooldownTimer -= dt;
+                    
+                    if (rule.cooldownTimer <= 0) {
+                        rule.cooldownTimer = 0;
+                    }
                 }
             }
         }
@@ -230,13 +241,27 @@ export default class RulesManager {
         const rule = this.RULES[ruleId];
         if (!rule) return false;
             
-            // Toggle rules (1) - check if not on cooldown
-            if (rule.type === 'toggle') {
-                return rule.cooldownTimer <= 0;
-            }
-            
-            // Duration rules (2-5) - check if not active and not on cooldown
-            return !rule.active && rule.cooldownTimer <= 0;
+        // Toggle rules (1) - check if not on cooldown
+        if (rule.type === 'toggle') {
+            return rule.cooldownTimer <= 0;
+        }
+        
+        // Duration rules (2-5) - check if not active and not on cooldown
+        return !rule.active && rule.cooldownTimer <= 0;
+    }
+    
+    /**
+     * Force Rule 1 state (used for RULE_BLOCK and OVERRIDE tiles)
+     * @param {boolean} newState - Force Rule 1 to this state
+     */
+    forceRule1State(newState) {
+        const rule = this.RULES[1];
+        if (!rule) return;
+        
+        rule.active = newState;
+        
+        // Reset cooldown to allow immediate toggle back
+        rule.cooldownTimer = 0;
     }
     
     /**

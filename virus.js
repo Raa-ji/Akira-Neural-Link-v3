@@ -76,7 +76,7 @@ export default class Virus {
         this._calculateMovementVector();
         
         // Apply movement with collision detection
-        this._applyMovement(dt, mapData);
+        this._applyMovement(dt, mapData, rulesManager);
         
         // Update target tracking
         if (this.targetType === 'player') {
@@ -161,8 +161,9 @@ export default class Virus {
     
     /**
      * Apply movement with wall collision detection
+     * @param {RulesManager} rulesManager - Rule state manager (optional)
      */
-    _applyMovement(dt, mapData) {
+    _applyMovement(dt, mapData, rulesManager) {
         if (this.currentSpeed <= 0 || this.state === this.STATE.STAYING) {
             return;
         }
@@ -171,27 +172,29 @@ export default class Virus {
         
         // Try X movement first
         let nextX = this.x + this.direction.x * moveDist;
-        if (!this._checkCollision(nextX, this.y, mapData)) {
+        if (!this._checkCollision(nextX, this.y, mapData, rulesManager)) {
             this.x = nextX;
         } else {
             // Slide along wall - try Y movement instead
             let nextY = this.y + this.direction.y * moveDist;
-            if (!this._checkCollision(this.x, nextY, mapData)) {
+            if (!this._checkCollision(this.x, nextY, mapData, rulesManager)) {
                 this.y = nextY;
             }
         }
         
         // Try Y movement (in case X movement worked)
         let nextY = this.y + this.direction.y * moveDist;
-        if (!this._checkCollision(this.x, nextY, mapData)) {
+        if (!this._checkCollision(this.x, nextY, mapData, rulesManager)) {
             this.y = nextY;
         }
     }
     
     /**
      * Check if the given position would collide with a wall
+     * @param {Array} mapData - 2D map array
+     * @param {RulesManager} rulesManager - Rule state manager (optional)
      */
-    _checkCollision(x, y, mapData) {
+    _checkCollision(x, y, mapData, rulesManager) {
         const mapX = Math.floor(x);
         const mapY = Math.floor(y);
         
@@ -200,9 +203,22 @@ export default class Virus {
             return true;
         }
         
-        // Check for solid tiles (1 = WALL, 2 = FIREWALL, 6-8 = WALL_VARIANTS)
+        // Check for solid tiles (1 = WALL, 6-8 = WALL_VARIANTS)
         const tileId = mapData[mapY][mapX];
-        return [1, 2, 6, 7, 8].includes(tileId);
+        if ([1, 6, 7, 8].includes(tileId)) {
+            return true;
+        }
+        
+        // Check for Firewall tiles (2) based on Rule 1 state
+        if (tileId === 2) {
+            // If Rule 1 is active (ON), firewalls are solid
+            // If Rule 1 is inactive (OFF), firewalls are passable
+            if (rulesManager && rulesManager.isRuleActive(1)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**

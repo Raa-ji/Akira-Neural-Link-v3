@@ -170,43 +170,47 @@ export default class Effects {
             rowElement.classList.toggle('active', ruleStates[ruleId].active);
             
             // Update state text and timer
-            if (ruleStates[ruleId].active) {
+            if (ruleId === 1 && ruleStates[ruleId].cooldownTimer > 0) {
+                // Rule 1 toggle is on cooldown
+                rowElement.classList.remove('active', 'ready');
+                rowElement.classList.add('cooldown');
+                // Top: show Firewall status (ON/OFF)
+                this.ruleStates[ruleId].textContent = ruleStates[ruleId].active ? 'ON' : 'OFF';
+                // Bottom: show cooldown timer
+                timerElement.textContent = ruleStates[ruleId].cooldownTimer.toFixed(1) + 's';
+                timerElement.className = 'rule-timer cooldown';
+            } else if (ruleId === 1) {
+                // Rule 1 toggle is not on cooldown
+                rowElement.classList.remove('cooldown', 'ready');
+                // Top: show Firewall status (ON/OFF)
+                this.ruleStates[ruleId].textContent = ruleStates[ruleId].active ? 'ON' : 'OFF';
+                // Bottom: show READY when available
+                timerElement.textContent = 'READY';
+                timerElement.className = 'rule-timer ready';
+            } else if (ruleStates[ruleId].active) {
                 rowElement.classList.remove('cooldown', 'ready');
                 rowElement.classList.add('active');
                 
-                if (ruleId === 1) {
-                    timerElement.textContent = 'ON';
-                } else {
+                if (ruleId === 2) {
                     timerElement.textContent = ruleStates[ruleId].activeTimer.toFixed(1) + 's';
                     timerElement.className = 'rule-timer duration';
+                    this.ruleStates[ruleId].textContent = 'ACTIVE';
                 }
-            } else if (ruleId === 1 && ruleStates[ruleId].cooldownTimer > 0) {
-                // Rule 1 is toggle with cooldown
-                rowElement.classList.remove('active', 'ready');
-                rowElement.classList.add('cooldown');
-                timerElement.textContent = ruleStates[ruleId].cooldownTimer.toFixed(1) + 's';
-                timerElement.className = 'rule-timer cooldown';
-            } else if (ruleId === 2 && ruleStates[ruleId].cooldownTimer > 0) {
-                // Rule 2 is duration with cooldown
-                rowElement.classList.remove('active', 'ready');
-                rowElement.classList.add('cooldown');
-                timerElement.textContent = ruleStates[ruleId].cooldownTimer.toFixed(1) + 's';
-                timerElement.className = 'rule-timer cooldown';
             } else if (ruleId === 2 && ruleStates[ruleId].activeTimer > 0) {
                 // Rule 2 is duration with active timer
                 rowElement.classList.remove('cooldown', 'ready');
                 rowElement.classList.add('active');
                 timerElement.textContent = ruleStates[ruleId].activeTimer.toFixed(1) + 's';
                 timerElement.className = 'rule-timer duration';
+                this.ruleStates[ruleId].textContent = 'ACTIVE';
             } else {
-                // Rule is ready
+                // Rule is ready or off
                 rowElement.classList.remove('active', 'cooldown');
                 rowElement.classList.add('ready');
                 
-                if (ruleId === 1) {
+                if (ruleId === 2) {
                     timerElement.textContent = 'READY';
-                } else {
-                    timerElement.textContent = 'READY';
+                    this.ruleStates[ruleId].textContent = 'READY';
                 }
             }
         }

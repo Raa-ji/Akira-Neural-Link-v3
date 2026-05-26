@@ -35,8 +35,9 @@ export default class Player {
      * @param {number} dt - Delta time in seconds
      * @param {InputHandler} inputHandler - Input state manager
      * @param {Array} mapData - 2D map array for collision detection
+     * @param {RulesManager} rulesManager - Rule state manager
      */
-    update(dt, inputHandler, mapData) {
+    update(dt, inputHandler, mapData, rulesManager) {
         if (this.isDead) return;
         
         // Reset movement vector
@@ -99,7 +100,7 @@ export default class Player {
             const nextX = this.x + dx;
             const nextY = this.y + dy;
             
-            if (!this._checkCollision(nextX, nextY, mapData)) {
+            if (!this._checkCollision(nextX, nextY, mapData, rulesManager)) {
                 this.x = nextX;
                 this.y = nextY;
             }
@@ -117,8 +118,9 @@ export default class Player {
     /**
      * Check if the given position would collide with a wall
      * Uses bounding box approach for collision detection
+     * @param {RulesManager} rulesManager - Rule state manager for Rule 1 (Firewall) state
      */
-    _checkCollision(x, y, mapData) {
+    _checkCollision(x, y, mapData, rulesManager) {
         // Check four corners of the player's bounding box
         const positions = [
             { x: x + this.BOUNDING_RADIUS, y: y + this.BOUNDING_RADIUS },
@@ -136,10 +138,19 @@ export default class Player {
                 return true;
             }
             
-            // Check for solid tiles (1 = WALL, 2 = FIREWALL, 6-8 = WALL_VARIANTS)
+            // Check for solid tiles (1 = WALL, 6-8 = WALL_VARIANTS)
             const tileId = mapData[mapY][mapX];
-            if (tileId === 1 || tileId === 2 || (tileId >= 6 && tileId <= 8)) {
+            if (tileId === 1 || (tileId >= 6 && tileId <= 8)) {
                 return true;
+            }
+            
+            // Check for Firewall tiles (2) based on Rule 1 state
+            if (tileId === 2) {
+                // If Rule 1 is active (ON), firewalls are solid
+                // If Rule 1 is inactive (OFF), firewalls are passable
+                if (rulesManager && rulesManager.isRuleActive(1)) {
+                    return true;
+                }
             }
         }
         

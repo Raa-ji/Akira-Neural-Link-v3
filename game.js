@@ -86,8 +86,7 @@ export default class Game {
             this.inputHandler.requestPointerLock(this.canvas);
         });
         
-        // Set initial rule [1] OFF (Firewalls not solid)
-        this.rulesManager.activateRule(1);
+        // Rule [1] is ON by default (Firewalls solid), no need to toggle
         
         // Reset game state
         this.gameTime = 0;
@@ -149,7 +148,7 @@ export default class Game {
         this.gameTime += dt;
         
         // Update player movement and state
-        this.player.update(dt, this.inputHandler, this.mapData);
+        this.player.update(dt, this.inputHandler, this.mapData, this.rulesManager);
         
         // Update rule timers
         this.rulesManager.update(dt);
@@ -167,6 +166,7 @@ export default class Game {
             const tileInteraction = virus.checkTileInteraction(this.mapData);
             if (tileInteraction) {
                 // Rule [1] OFF for RULE_BLOCK (4) and OVERRIDE (9)
+                // These tiles force Rule [1] to be inactive while virus is on them
                 if (tileInteraction.tileId === 4 || tileInteraction.tileId === 9) {
                     this.rulesManager.activateRule(1);
                 }
