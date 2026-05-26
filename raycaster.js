@@ -5,10 +5,11 @@
  * Projects walls onto canvas based on player position and angle
  */
 export default class Raycaster {
-    constructor(canvas, ctx, mapData) {
+    constructor(canvas, ctx, mapData, rulesManager) {
         this.canvas = canvas;
         this.ctx = ctx;
         this.mapData = mapData;
+        this.rulesManager = rulesManager;
         
         // Raycasting parameters
         this.FOV = Math.PI / 3; // 60 degrees
@@ -32,6 +33,9 @@ export default class Raycaster {
     
     /**
      * Check if a map coordinate is a solid wall
+     * @param {number} x - X coordinate in tiles
+     * @param {number} y - Y coordinate in tiles
+     * @returns {boolean} True if this tile should block rays
      */
     isWall(x, y) {
         // Bounds checking
@@ -42,9 +46,12 @@ export default class Raycaster {
         const tileId = this.mapData[Math.floor(y)][Math.floor(x)];
         
         // Walls (1, 6-8) are always solid
-        // Firewall (2) becomes solid when Rule [1] is active (handled by RulesManager later)
-        // For now, treat all as solid unless explicitly stated otherwise
-        return [1, 2, 6, 7, 8].includes(tileId);
+        // Firewall (2) becomes solid when Rule [1] is active
+        if (tileId === 2) {
+            // Firewall is solid only when Rule [1] is active
+            return this.rulesManager && this.rulesManager.isRuleActive(1);
+        }
+        return [1, 6, 7, 8].includes(tileId);
     }
     
     /**
@@ -92,6 +99,7 @@ export default class Raycaster {
         // Perform DDA
         let hit = 0; // Was there a wall hit?
         let side;    // Was a NS or a EW wall hit?
+        let hitTileId = 0; // Tile ID that was hit
         
         while (hit === 0) {
             // Jump to next map square, OR in x-direction, OR in y-direction
@@ -108,6 +116,7 @@ export default class Raycaster {
             // Check if ray has hit a wall
             if (this.isWall(mapX, mapY)) {
                 hit = 1;
+                hitTileId = this.mapData[Math.floor(mapY)][Math.floor(mapX)];
             }
         }
         
@@ -119,7 +128,11 @@ export default class Raycaster {
             perpWallDist = (mapY - playerY + (1 - stepY) / 2) / dirY;
         }
         
-        return perpWallDist;
+        return {
+            distance: perpWallDist,
+            tileId: hitTileId,
+            side: side
+        };
     }
     
     /**
@@ -139,8 +152,11 @@ export default class Raycaster {
         for (let i = 0; i < this.NUM_RAYS; i++) {
             const rayAngle = startAngle + i * angleStep;
             
-            // Cast ray and get perpendicular distance
-            const dist = this.castRay(rayAngle, playerX, playerY);
+            // Cast ray and get information (now returns object with distance, tileId, and side)
+            const hitInfo = this.castRay(rayAngle, playerX, playerY);
+            const dist = hitInfo.distance;
+            const tileId = hitInfo.tileId;
+            const side = hitInfo.side;
             
             // Fix fisheye distortion by using perpendicular distance
             const fixedDist = dist * Math.cos(rayAngle - playerAngle);
@@ -153,13 +169,18 @@ export default class Raycaster {
             const floor = ceiling + wallHeight;
             
             // Determine wall color based on tile type at hit point
-            // This is simplified - in practice you'd track the tile ID during DDA
-            let wallColor = this.wallColors[1] || '#00ff00'; // Default to WALL color
+            let wallColor = this.wallColors[tileId] || '#00ff00'; // Default to WALL color
             
-            // Simple shading based on side
-            if (i % 2 === 0) {
-                // Slightly darken every other column for texture effect
-                wallColor = this._darkenColor(wallColor, 0.8);
+            // If Rule [1] is OFF and this is a firewall (tile ID 2), skip rendering (invisible)
+            if (tileId === 2 && this.rulesManager && !this.rulesManager.isRuleActive(1)) {
+                // Skip this ray - make firewall invisible when rule is OFF
+                continue;
+            }
+            
+            // Apply side shading for texture effect
+            if (side === 1) {
+                // Darken horizontal wall edges slightly
+                wallColor = this._darkenColor(wallColor, 0.9);
             }
             
             // Draw wall strip

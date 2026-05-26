@@ -52,11 +52,11 @@ export default class Game {
         // Player starts at position (7.5, 1.5) looking East (0 radians)
         this.player = new Player(7.5, 1.5, 0);
         
-        // Raycaster for 3D rendering
-        this.raycaster = new Raycaster(this.canvas, this.ctx, this.mapData);
-        
-        // Rules manager for game mechanics
+        // Rules manager for game mechanics (must be created before raycaster)
         this.rulesManager = new RulesManager();
+        
+        // Raycaster for 3D rendering (passes rulesManager to handle firewall visibility)
+        this.raycaster = new Raycaster(this.canvas, this.ctx, this.mapData, this.rulesManager);
         
         // Initialize nodes (IDs 0-4 at specific positions)
         // Node 0 (Motor Control) at (32, 32)

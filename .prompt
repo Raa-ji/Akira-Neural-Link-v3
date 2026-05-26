@@ -60,7 +60,6 @@ Use the following tile IDs in your map data (`0` = empty, `1` = wall, etc.):
 | 4  | RULE_BLOCK   | Virus interaction point; can toggle Rule [1] OFF                         |
 | 5  | SYSTEM_NODE  | Objective node. Can be infected, cleaned, or secured                     |
 | 6–8| WALL_VARIANTS| Visual only (same collision as `WALL`)                                   |
-| 9  | OVERRIDE     | Virus trigger to force Rule [1] OFF                                      |
 
 > 🗺️ **Map Size:** Exactly 64×64 tiles. Each tile = 64px → canvas internal resolution = 4096×4096 (scaled via CSS).
 
