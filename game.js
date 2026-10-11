@@ -41,6 +41,14 @@ export default class Game {
         this.nodesSecure = 1; // Starting with 1 secure node
         this.nodesInfected = 4; // 4 nodes start uninfected initially
         this.gameOver = false;
+        
+        // Player carrying state
+        this.playerCarryingVirus = false;
+        this.carryingVirusId = null;
+        
+        // Quarantine system
+        this.quarantineTimer = 0;
+        this.QUARANTINE_DURATION = 2.0; // Seconds to quarantine (adjustable for balancing)
     }
     
     /**
@@ -160,7 +168,8 @@ export default class Game {
         
         // Update virus states and AI
         for (const virus of this.viruses) {
-            virus.update(dt, this.player, this.rulesManager, this.mapData);
+            virus.update(dt, this.player, this.rulesManager, this.mapData, 
+                         this.nodes, this.playerCarryingVirus);
             
             // Check if virus is near a rule block tile
             const tileInteraction = virus.checkTileInteraction(this.mapData);
@@ -190,6 +199,9 @@ export default class Game {
         
         // Handle rule hotkeys
         this._handleRuleHotkeys();
+        
+        // Handle quarantine input
+        this._handleQuarantineInput(dt);
         
         // Check win/loss conditions
         this._checkWinLossConditions();
@@ -222,6 +234,42 @@ export default class Game {
         // Rule 5: COOLANT IS SAFE
         if (this.inputHandler.isPressed('5')) {
             this.rulesManager.activateRule(5);
+        }
+    }
+    
+    /**
+     * Handle quarantine input - press V while stationary to quarantine a carried virus
+     * @param {number} dt - Delta time in seconds
+     */
+    _handleQuarantineInput(dt) {
+        if (!this.playerCarryingVirus) {
+            this.quarantineTimer = 0;
+            return;
+        }
+        
+        if (this.inputHandler.isPressed('v')) {
+            // Check if player is stationary
+            if (!this.player.isMoving) {
+                this.quarantineTimer += dt;
+                
+                if (this.quarantineTimer >= this.QUARANTINE_DURATION) {
+                    // Quarantine complete - find and remove the carried virus
+                    const virusIndex = this.viruses.findIndex(v => v.isCaptured);
+                    if (virusIndex !== -1) {
+                        this.viruses.splice(virusIndex, 1);
+                    }
+                    
+                    this.virusesQuarantined++;
+                    this.clearPlayerCarryingVirus();
+                    this.quarantineTimer = 0;
+                }
+            } else {
+                // Player moved - reset quarantine timer
+                this.quarantineTimer = 0;
+            }
+        } else {
+            // V not pressed - reset quarantine timer
+            this.quarantineTimer = 0;
         }
     }
     
@@ -363,6 +411,31 @@ export default class Game {
      */
     isGameRunning() {
         return this.isRunning;
+    }
+    
+    /**
+     * Set the player carrying virus state
+     * @param {number} virusId - ID of the virus being carried
+     */
+    setPlayerCarryingVirus(virusId) {
+        this.playerCarryingVirus = true;
+        this.carryingVirusId = virusId;
+    }
+    
+    /**
+     * Clear the player carrying virus state (on quarantine)
+     */
+    clearPlayerCarryingVirus() {
+        this.playerCarryingVirus = false;
+        this.carryingVirusId = null;
+    }
+    
+    /**
+     * Check if the player is currently carrying a virus
+     * @returns {boolean}
+     */
+    isPlayerCarryingVirus() {
+        return this.playerCarryingVirus;
     }
     
     /**

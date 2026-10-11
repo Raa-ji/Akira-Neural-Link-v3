@@ -20,16 +20,18 @@ export default class Virus {
         
         // Behavior states
         this.STATE = {
-            WANDERING: 'wandering',
-            CHASING: 'chasing',
-            STAYING: 'staying'
+            SEEKING_NODE: 'seeking_node',     // Looking for closest unvisited/uninfected node
+            INFECTING_NODE: 'infecting_node', // Stationary, infecting a node (2s timer)
+            RETURNING_TO_NODE: 'returning',   // Going back to a previously visited node
+            PURSUING_PLAYER: 'pursuing',      // Aggressive pursuit when player carries a virus
+            WANDERING: 'wandering'            // Random exploration when no clear goal
         };
-        this.state = this.STATE.WANDERING;
+        this.state = this.STATE.SEEKING_NODE;
         
         // Virus properties
         this.isCaptured = false;
         this.capturedTimer = 0.0;
-        this.captureDuration = 2.0; // Seconds to capture (held 'V' for 2s)
+        this.captureDuration = 2.0; // Seconds to quaratine (held 'V' for 2s)
         
         // Movement direction
         this.direction = { x: 0, y: 0 };
@@ -38,6 +40,19 @@ export default class Virus {
         // State timers
         this.stateTimer = 0;
         this.wanderDuration = 3 + Math.random() * 5; // 3-8 seconds
+        
+        // Infection system
+        this.infectionProgress = 0.0; // 0-100% for infecting a node
+        this.INFECTION_DURATION = 2.0; // Seconds to infect a node (adjustable)
+        this.currentTargetNode = null; // Current node being targeted
+        
+        // Memory system - tracks explored areas and visited nodes
+        this.memory = {
+            visitedNodes: new Set(),           // Node IDs this virus has reached
+            exploredTiles: new Set(),          // Tiles this virus has traversed (as "x,y" strings)
+            knownPaths: new Map(),             // nodeId -> path array for remembered routes
+            lastNodeId: null                   // Last node this virus interacted with
+        };
     }
     
     /**
@@ -46,8 +61,10 @@ export default class Virus {
      * @param {Player} player - Player object
      * @param {RulesManager} rulesManager - Rule state manager
      * @param {Array} mapData - 2D map array for collision detection
+     * @param {Array} nodes - Array of Node objects for targeting
+     * @param {boolean} playerCarryingVirus - Whether the player is carrying a captured virus
      */
-    update(dt, player, rulesManager, mapData) {
+    update(dt, player, rulesManager, mapData, nodes, playerCarryingVirus) {
         if (this.isCaptured) {
             this._updateCaptureState(dt);
             return;
@@ -69,74 +86,213 @@ export default class Virus {
             this.currentSpeed = this.baseSpeed;
         }
         
-        // Update behavior state if not moving
-        this._updateState(dt);
+        // Update behavior state
+        this._updateState(dt, player, nodes, playerCarryingVirus);
         
         // Calculate movement vector based on state
-        this._calculateMovementVector();
+        this._calculateMovementVector(dt, player, nodes, mapData);
         
         // Apply movement with collision detection
         this._applyMovement(dt, mapData, rulesManager);
         
-        // Update target tracking
-        if (this.targetType === 'player') {
-            this.targetX = player.x;
-            this.targetY = player.y;
+        // Record explored tile
+        this.recordExploredTile(this.x, this.y);
+    }
+    
+    /**
+     * Update virus behavior state based on game conditions
+     * @param {number} dt - Delta time in seconds
+     * @param {Player} player - Player object
+     * @param {Array} nodes - Array of Node objects
+     * @param {boolean} playerCarryingVirus - Whether player is carrying a virus
+     */
+    _updateState(dt, player, nodes, playerCarryingVirus) {
+        this.stateTimer += dt;
+        
+        // Check if player is carrying a virus - switch to pursuit mode
+        if (playerCarryingVirus && this.state !== this.STATE.PURSUING_PLAYER) {
+            this.state = this.STATE.PURSUING_PLAYER;
+            this.stateTimer = 0;
+            return;
+        }
+        
+        // If in pursuit mode and player no longer carrying, return to seeking
+        if (!playerCarryingVirus && this.state === this.STATE.PURSUING_PLAYER) {
+            this.state = this.STATE.SEEKING_NODE;
+            this.stateTimer = 0;
+            this._selectTargetNode(nodes);
+            return;
+        }
+        
+        // Handle state transitions based on current state
+        switch (this.state) {
+            case this.STATE.SEEKING_NODE:
+                // Find a target node if we don't have one
+                if (!this.currentTargetNode) {
+                    this._selectTargetNode(nodes);
+                }
+                
+                // Check if we've reached the target node
+                if (this.currentTargetNode) {
+                    const dx = this.x - this.currentTargetNode.tileX;
+                    const dy = this.y - this.currentTargetNode.tileY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance <= 1.5) {
+                        // Reached the node - start infecting
+                        this.state = this.STATE.INFECTING_NODE;
+                        this.infectionProgress = 0;
+                        this.stateTimer = 0;
+                        this.recordNodeVisit(this.currentTargetNode.id);
+                    }
+                }
+                
+                // Occasionally wander if no target found
+                if (!this.currentTargetNode && this.stateTimer >= this.wanderDuration) {
+                    this.state = this.STATE.WANDERING;
+                    this.wanderDuration = 3 + Math.random() * 5;
+                    this.stateTimer = 0;
+                }
+                break;
+                
+            case this.STATE.INFECTING_NODE:
+                // Infection progress is handled in _calculateMovementVector
+                // Check if infection is complete
+                if (this.infectionProgress >= 100) {
+                    // Infection complete - check if node is still uninfected
+                    if (this.currentTargetNode && !this.currentTargetNode.isInfected()) {
+                        this.currentTargetNode.infect();
+                    }
+                    
+                    // Switch to wandering or seeking next node
+                    this.currentTargetNode = null;
+                    this.infectionProgress = 0;
+                    
+                    // 50% chance to seek another node, 50% to wander
+                    if (Math.random() < 0.5) {
+                        this.state = this.STATE.SEEKING_NODE;
+                        this._selectTargetNode(nodes);
+                    } else {
+                        this.state = this.STATE.WANDERING;
+                        this.wanderDuration = 3 + Math.random() * 5;
+                    }
+                    this.stateTimer = 0;
+                }
+                break;
+                
+            case this.STATE.WANDERING:
+                if (this.stateTimer >= this.wanderDuration) {
+                    // Switch to seeking a node
+                    this.state = this.STATE.SEEKING_NODE;
+                    this._selectTargetNode(nodes);
+                    this.stateTimer = 0;
+                }
+                break;
+                
+            case this.STATE.RETURNING_TO_NODE:
+                // Check if we've reached the node
+                if (this.currentTargetNode) {
+                    const dx = this.x - this.currentTargetNode.tileX;
+                    const dy = this.y - this.currentTargetNode.tileY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance <= 1.5) {
+                        // Reached the node - start infecting
+                        this.state = this.STATE.INFECTING_NODE;
+                        this.infectionProgress = 0;
+                        this.stateTimer = 0;
+                    }
+                }
+                break;
         }
     }
     
     /**
-     * Update virus behavior state
+     * Select the closest target node based on memory and node state
+     * @param {Array} nodes - Array of Node objects
      */
-    _updateState(dt) {
-        this.stateTimer += dt;
+    _selectTargetNode(nodes) {
+        let closestNode = null;
+        let closestDistance = Infinity;
         
-        if (this.stateTimer >= this.wanderDuration) {
-            // Time to change state
-            const rand = Math.random();
-            
-            if (rand < 0.5) {
-                this.state = this.STATE.CHASING;
-                this.wanderDuration = 5 + Math.random() * 5; // Chase for 5-10s
-            } else if (rand < 0.7) {
-                this.state = this.STATE.STAYING;
-                this.wanderDuration = 3 + Math.random() * 4; // Stay for 3-7s
-            } else {
-                this.state = this.STATE.WANDERING;
-                this.wanderDuration = 3 + Math.random() * 5; // Wander for 3-8s
+        for (const node of nodes) {
+            // Skip secure nodes (already secured)
+            if (node.isSecure()) {
+                continue;
             }
             
-            this.stateTimer = 0;
+            // Skip nodes we've already visited and are currently infected
+            if (this.hasVisitedNode(node.id) && node.isInfected()) {
+                continue;
+            }
+            
+            const dx = this.x - node.tileX;
+            const dy = this.y - node.tileY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestNode = node;
+            }
         }
         
-        // Update target based on state
-        if (this.state === this.STATE.CHASING) {
-            this.targetType = 'player';
-        } else if (this.state === this.STATE.STAYING) {
-            // Stay at current position, but can be forced to chase if player is close
-            this.targetType = 'current';
-        } else {
-            // WANDERING - random wandering
-            this.targetType = 'random';
+        // If no uninfected/unvisited node found, look for cleansed nodes to re-infect
+        if (!closestNode) {
+            for (const node of nodes) {
+                // Look for nodes we've visited that are no longer infected (cleansed)
+                if (this.hasVisitedNode(node.id) && !node.isInfected() && !node.isSecure()) {
+                    const dx = this.x - node.tileX;
+                    const dy = this.y - node.tileY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestNode = node;
+                    }
+                }
+            }
         }
+        
+        this.currentTargetNode = closestNode;
     }
     
     /**
      * Calculate movement vector based on current state
+     * @param {number} dt - Delta time in seconds
+     * @param {Player} player - Player object
+     * @param {Array} nodes - Array of Node objects
+     * @param {Array} mapData - 2D map array for collision detection
      */
-    _calculateMovementVector() {
+    _calculateMovementVector(dt, player, nodes, mapData) {
         let targetX = this.x;
         let targetY = this.y;
         
         // Select target based on state
-        if (this.state === this.STATE.CHASING) {
-            // Target player
-            // targetX, targetY already set in update()
-        } else if (this.state === this.STATE.STAYING) {
-            // Don't move
+        if (this.state === this.STATE.PURSUING_PLAYER) {
+            // Direct pursuit - target player position
+            targetX = player.x;
+            targetY = player.y;
+        } else if (this.state === this.STATE.INFECTING_NODE) {
+            // Don't move while infecting
             this.direction.x = 0;
             this.direction.y = 0;
+            
+            // Increment infection progress
+            this.infectionProgress += (100.0 / this.INFECTION_DURATION) * dt;
+            if (this.infectionProgress > 100) {
+                this.infectionProgress = 100;
+            }
             return;
+        } else if (this.state === this.STATE.SEEKING_NODE || this.state === this.STATE.RETURNING_TO_NODE) {
+            // Move toward target node
+            if (this.currentTargetNode) {
+                targetX = this.currentTargetNode.tileX;
+                targetY = this.currentTargetNode.tileY;
+            } else {
+                // No target - wander
+                targetX = this.x + Math.cos(this.moveAngle) * 3;
+                targetY = this.y + Math.sin(this.moveAngle) * 3;
+            }
         } else if (this.state === this.STATE.WANDERING) {
             // Wander in a random direction
             targetX = this.x + Math.cos(this.moveAngle) * 3;
@@ -164,7 +320,7 @@ export default class Virus {
      * @param {RulesManager} rulesManager - Rule state manager (optional)
      */
     _applyMovement(dt, mapData, rulesManager) {
-        if (this.currentSpeed <= 0 || this.state === this.STATE.STAYING) {
+        if (this.currentSpeed <= 0 || this.state === this.STATE.INFECTING_NODE) {
             return;
         }
         
@@ -273,6 +429,68 @@ export default class Virus {
     }
     
     /**
+     * Record that this virus has visited a node
+     * @param {number} nodeId - ID of the node visited
+     * @param {Array} path - Path taken to reach the node (array of {x, y} positions)
+     */
+    recordNodeVisit(nodeId, path = null) {
+        this.memory.visitedNodes.add(nodeId);
+        this.memory.lastNodeId = nodeId;
+        if (path) {
+            this.memory.knownPaths.set(nodeId, path);
+        }
+    }
+    
+    /**
+     * Check if this virus has visited a node
+     * @param {number} nodeId - ID of the node to check
+     * @returns {boolean}
+     */
+    hasVisitedNode(nodeId) {
+        return this.memory.visitedNodes.has(nodeId);
+    }
+    
+    /**
+     * Get the known path to a previously visited node
+     * @param {number} nodeId - ID of the node
+     * @returns {Array|null} Path array or null if not known
+     */
+    getKnownPath(nodeId) {
+        return this.memory.knownPaths.get(nodeId) || null;
+    }
+    
+    /**
+     * Record that this virus has explored a tile
+     * @param {number} x - X coordinate
+     * @param {number} y - Y coordinate
+     */
+    recordExploredTile(x, y) {
+        const tileKey = `${Math.floor(x)},${Math.floor(y)}`;
+        this.memory.exploredTiles.add(tileKey);
+    }
+    
+    /**
+     * Check if this virus has explored a tile
+     * @param {number} x - X coordinate
+     * @param {number} y - Y coordinate
+     * @returns {boolean}
+     */
+    hasExploredTile(x, y) {
+        const tileKey = `${Math.floor(x)},${Math.floor(y)}`;
+        return this.memory.exploredTiles.has(tileKey);
+    }
+    
+    /**
+     * Clear all memory (called on capture or game reset)
+     */
+    clearMemory() {
+        this.memory.visitedNodes.clear();
+        this.memory.exploredTiles.clear();
+        this.memory.knownPaths.clear();
+        this.memory.lastNodeId = null;
+    }
+    
+    /**
      * Check interaction with special tiles (RULE_BLOCK, OVERRIDE)
      * @param {Array} mapData - 2D map array
      */
@@ -313,7 +531,12 @@ export default class Virus {
             state: this.state,
             isCaptured: this.isCaptured,
             capturedTimer: this.capturedTimer.toFixed(1),
-            speed: this.currentSpeed.toFixed(1)
+            speed: this.currentSpeed.toFixed(1),
+            visitedNodes: Array.from(this.memory.visitedNodes),
+            exploredTileCount: this.memory.exploredTiles.size,
+            lastNodeId: this.memory.lastNodeId,
+            targetNodeId: this.currentTargetNode ? this.currentTargetNode.id : null,
+            infectionProgress: this.infectionProgress.toFixed(1)
         };
     }
 }
